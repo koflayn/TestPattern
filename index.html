@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Testpattern Varela - v2.6</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#101215;--panel:#1a1d22;--line:#2d3138;--tx:#e8eaed;--mut:#8b919a;--ac:#4aa3ff}
+:root[data-theme="light"]{--bg:#101215}
+*,*:before,*:after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;padding:20px 16px 40px}
+main{max-width:980px;margin:0 auto}
+h1{font-size:1.5rem;font-weight:600;margin:0 0 18px}
+.fields{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+label{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--mut)}
+input{background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:10px;font-size:1rem;width:100%}
+input:focus-visible,button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.view{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.box{max-width:100%;overflow:auto}
+canvas{display:block;max-width:100%;height:auto}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;color:var(--mut);font-size:.85rem}
+button{background:var(--ac);color:#08111c;border:0;border-radius:6px;padding:10px 16px;font-size:.95rem;font-weight:600;cursor:pointer}
+#err{color:#ff8a80;min-height:1.2em;font-size:.85rem;margin:8px 2px 0}
+@media(max-width:560px){.fields{grid-template-columns:1fr 1fr}.fields label:first-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<main>
+<h1>Testpattern Varela - v2.6</h1>
+<div class="fields">
+  <label>Nombre proyecto<input id="name" value="Mi proyecto" autocomplete="off"></label>
+  <label>Ancho (px)<input id="w" type="number" inputmode="numeric" min="16" max="8192" value="1920"></label>
+  <label>Alto (px)<input id="h" type="number" inputmode="numeric" min="16" max="8192" value="1080"></label>
+</div>
+<div id="err"></div>
+<div class="view">
+  <div class="box"><canvas id="c"></canvas></div>
+  <div class="row"><span id="info"></span><button id="dl">Descargar PNG</button></div>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d');
+function draw(){
+  let w=Math.round(+$('w').value),h=Math.round(+$('h').value),err='';
+  if(!(w>=16&&h>=16)){$('err').textContent='Ingresa ancho y alto de al menos 16 px.';return}
+  if(w>8192||h>8192){err='Máximo 8192 px por lado; se ajustó.';w=Math.min(w,8192);h=Math.min(h,8192)}
+  $('err').textContent=err;
+  cv.width=w;cv.height=h;
+  const s=Math.min(w/574,h/331),cx=w/2,cy=h/2,lw=Math.max(1,2.2*s),b=Math.max(2,3*s),c0=b+38*s;
+  const X=l=>cx+(l-287)*s,Y=l=>cy+(l-165.5)*s;
+  const F='"Segoe UI",Arial,sans-serif';
+  const box=(c,l,t,bw,bh)=>{ctx.fillStyle=c;ctx.fillRect(X(l),Y(t),bw*s,bh*s)};
+  // fondo y cuadrícula
+  ctx.fillStyle='#9a9a9a';ctx.fillRect(0,0,w,h);
+  const cell=20.7*s;ctx.strokeStyle='#fff';ctx.lineWidth=lw;ctx.beginPath();
+  for(let k=0;k*cell<=w/2+cell;k++){for(const x of[cx+k*cell,cx-k*cell]){ctx.moveTo(x,0);ctx.lineTo(x,h)}}
+  for(let k=0;k*cell<=h/2+cell;k++){for(const y of[cy+k*cell,cy-k*cell]){ctx.moveTo(0,y);ctx.lineTo(w,y)}}
+  ctx.stroke();
+  // barras laterales (ancladas a los bordes)
+  // diagonales
+  ctx.strokeStyle='#fff';ctx.lineWidth=lw*1.5;ctx.beginPath();
+  ctx.lineWidth=lw*2;[[0,0,'#ff0000'],[w,0,'#ffff00'],[w,h,'#8b4513'],[0,h,'#6a0dad'],[0,cy,'#ff8a00'],[w,cy,'#8a5cff'],[cx,0,'#22c22e'],[cx,h,'#3b82ff']].forEach(([x,y,c])=>{ctx.beginPath();ctx.strokeStyle=c;ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.stroke()});
+  // barras laterales (ancladas a los bordes)
+  const fy=(h-52*s)/(279*s),sh=((b+70*s+cx-158*s)/2-26.5*s)/s-77,side=(l,t,bw,bh,c,r)=>{ctx.fillStyle=c;ctx.fillRect(r?w-(l+sh+bw)*s:(l+sh)*s,27*s+(t-27)*fy*s,bw*s,bh*fy*s)};
+  for(const r of[0,1]){
+    side(77,27,25,138,r?'#ff2200':'#22c22e',r);side(77,168,25,137,r?'#2244ff':'#ff2d95',r);
+    side(104,27,26,53,r?'#2244ff':'#00e0d0',r);side(104,252,26,54,r?'#22c22e':'#ffff00',r);
+  }
+  // círculos de esquina
+  for(const[px,py,n]of[[c0,c0,1],[w-c0,c0,2],[c0,h-c0,3],[w-c0,h-c0,4]]){
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px,py,32*s,0,7);ctx.fill();
+    ctx.strokeStyle='#000';ctx.lineWidth=Math.max(1.5,2.5*s);ctx.beginPath();ctx.arc(px,py,25*s,0,7);ctx.stroke();ctx.fillStyle='#000';ctx.font=`800 ${38*s}px ${F}`;ctx.textAlign='center';ctx.textBaseline='alphabetic';const tm=ctx.measureText(n);ctx.fillText(n,px,py+(tm.actualBoundingBoxAscent-tm.actualBoundingBoxDescent)/2);
+    
+  }
+  // círculo central
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,158*s,0,7);ctx.clip();
+  box('#fff',120,0,335,331);
+  box('#000',246,25,84,23);
+  for(const x of[175,250,300,374])box('#000',x,65,25,25);
+  const bc=['#ffff00','#00e0d0','#5de83a','#ff2d95','#ff2200','#2244ff'];
+  bc.forEach((c,i)=>box(c,130+i*52.5,92,53,48));
+  box('#000',130,140,315,46);
+  ctx.strokeStyle='#9a9a9a';ctx.lineWidth=lw*1.2;ctx.beginPath();
+  for(let k=-8;k<=8;k++){ctx.moveTo(cx+k*cell,Y(140));ctx.lineTo(cx+k*cell,Y(186))}
+  ctx.moveTo(X(130),Y(162));ctx.lineTo(X(445),Y(162));ctx.stroke();
+  // ráfaga de frecuencias
+  for(let x=133,i=0;x<442;i++){const t=(x-133)/309,wd=2+4.5*t;
+    if(i%2){const v=Math.round(200*(1-t)+15*t);box(`rgb(${v},${v},${v})`,x,189,wd,39)}x+=wd}
+  // escala de grises
+  ['#000','#808080','#a0a0a0','#b8b8b8','#e0e0e0','#fff'].forEach((c,i)=>box(c,130+i*52.5,232,53,25));
+  box('#000',205,257,160,22);
+  box('#ffff00',130,279,315,50);box('#ff2200',275,279,25,50);
+  ctx.restore();
+  // texto central
+  const name=$('name').value.trim()||'Proyecto',maxW=250*s;
+  let fs=Math.max(8,30*s),lines=[];
+  for(;fs>=8;fs-=1){
+    ctx.font=`700 ${fs}px ${F}`;lines=[];let cur='';
+    for(const wd of name.split(/\s+/)){const t=cur?cur+' '+wd:wd;if(ctx.measureText(t).width<=maxW||!cur)cur=t;else{lines.push(cur);cur=wd}}
+    lines.push(cur);
+    if(lines.length<=3&&lines.every(l=>ctx.measureText(l).width<=maxW))break;
+  }
+  const lh=fs*1.2,sf=Math.max(8,fs*.5),tw=Math.max(...lines.map(l=>ctx.measureText(l).width)),pad=fs*.5;
+  const bhh=lines.length*lh+sf*1.6+pad*2,bww=tw+pad*2;
+  ctx.fillStyle='rgba(0,0,0,.85)';ctx.fillRect(cx-bww/2,cy-bhh/2,bww,bhh);
+  ctx.strokeStyle='#fff';ctx.lineWidth=lw;ctx.strokeRect(cx-bww/2,cy-bhh/2,bww,bhh);
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`700 ${fs}px ${F}`;
+  lines.forEach((l,i)=>ctx.fillText(l,cx,cy-bhh/2+pad+lh*(i+.5)));
+  ctx.font=`600 ${sf}px ${F}`;ctx.fillStyle='#6cc0ff';
+  ctx.fillText(`${w} × ${h} px`,cx,cy+bhh/2-pad-sf*.5);
+  // medidas en los bordes
+  const mf=Math.max(9,12*s);ctx.font=`600 ${mf}px ${F}`;ctx.textAlign='center';ctx.textBaseline='middle';
+  const tag=(t,x,y)=>{const q=ctx.measureText(t).width+mf;ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(x-q/2,y-mf*.8,q,mf*1.6);ctx.fillStyle='#fff';ctx.fillText(t,x,y)};
+  tag(`${w} px`,cx,mf+b);
+  ctx.save();ctx.translate(mf+b,cy);ctx.rotate(-Math.PI/2);tag(`${h} px`,0,0);ctx.restore();
+  ctx.strokeStyle='#ff0000';ctx.lineWidth=b;ctx.strokeRect(b/2,b/2,w-b,h-b);
+  $('info').textContent=`${w} × ${h} px`;
+}
+['name','w','h'].forEach(id=>$(id).addEventListener('input',draw));
+draw();
+// descarga
+$('dl').addEventListener('click',async()=>{
+  const fn=(($('name').value.trim()||'testpattern').replace(/[^\w\-]+/g,'_'))+`_${cv.width}x${cv.height}.png`;
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+  try{
+    const d=window.claude&&await claude.use('downloads');
+    if(d){await d.save({filename:fn,data:blob});return}
+  }catch(e){if(e&&e.code==='declined')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();
+});
+</script>
+</body>
+</html>
